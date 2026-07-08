@@ -190,7 +190,7 @@ class Square extends Shape {
 class Circle extends Shape {
     public double radius; // radius of the circle
 
-    // Constructor to initialize the circle with its position and radius
+    // Constructor to initialise the circle with its position and radius
     public Circle(Coordinates position, double radius) {
         super(0, position);
         this.radius = radius;
@@ -234,7 +234,7 @@ class Triangle extends Shape {
     public Coordinates vertex2; // second vertex of the triangle
     public Coordinates vertex3; // third vertex of the triangle
 
-    // Constructor to initialize the triangle with its three vertices
+    // Constructor to initialise the triangle with its three vertices
     public Triangle (Coordinates vertex1, Coordinates vertex2, Coordinates vertex3) {
         super(3, vertex1);
         this.vertex2 = vertex2;
@@ -282,57 +282,83 @@ class Triangle extends Shape {
     }
 }
 
+// Class representing a list of shapes, allowing for adding, removing, and manipulating shapes
 class ShapeList  {
-    private ArrayList<Shape> listOfShapes;
+    private ArrayList<Shape> listOfShapes; // List to store the shapes
 
+    // Constructor to initialise the ShapeList with an empty list of shapes
     public ShapeList() {
         this.listOfShapes = new ArrayList<Shape>();
     }
-
+    // Method to add a shape to the list
     public void addShape(Shape s) {
         listOfShapes.add(s);
     }
-
+    // Method to translate all shapes in the list by a given amount
     public void translateShapes(int dx, int dy) {
         for (Shape s : listOfShapes) {
             s.translate(dx, dy);
         }
     }
-
+    // Method to get a shape at a specific position in the list
     public Shape getShape(int pos) {
-        return listOfShapes.get(pos);
-    }
+        // Check if the position is valid
+        if (pos < 0 || pos >= listOfShapes.size()) {
+            System.out.println("Invalid position. No shape exists at position " + pos + ".");
+            return null;
+        }
 
+        return listOfShapes.get(pos - 1); // Adjusting for 1-based indexing
+    }
+    // Method to remove a shape at a specific position in the list
     public Shape removeShape(int pos) {
-        return listOfShapes.remove(pos);
+        if (pos < 0 || pos >= listOfShapes.size()) {
+            System.out.println("Invalid position. No shape exists at position " + pos + ".");
+            return null;
+        }
+        return listOfShapes.remove(pos - 1);
     }
-
+    // Method to calculate the area of a shape at a specific position in the list
     public double area(int pos) {
-        return listOfShapes.get(pos).getArea();
-    }
+        Shape shape = getShape(pos);
 
+        if (shape == null) {
+            return 0;
+        }
+        return shape.getArea();
+    }
+    // Method to calculate the perimeter of a shape at a specific position in the list
     public double perimeter(int pos) {
-        return listOfShapes.get(pos).getPerimeter();
-    }
+        Shape shape = getShape(pos);
 
+        if (shape == null) {
+            return 0;
+        }
+        return shape.getPerimeter();
+    }
+    // Method to scale all shapes in the list by a given factor and sign
     public void scale(int factor, boolean sign) {
         for (Shape s : listOfShapes) {
             s.scale(factor, sign);
         }
     }
-
+    // Method to get the number of shapes in the list
     public int getNumberOfShapes() {
         return listOfShapes.size();
     }
-
+    // Method to display information about all shapes in the list
     public String display() {
-        String d = "";
-        for (Shape s : listOfShapes) {
-            d += s.display() + "\n";
+        if (listOfShapes.isEmpty()) {
+            return "There are no shapes in the list.";
+        }
+
+        String d = ""; // An empty string to hold the display information
+        // Loop through the list of shapes and append their information to the display string
+        for (int i = 0; i < listOfShapes.size(); i++) {
+            d += "Shape " + (i + 1) + ": " + listOfShapes.get(i).display() + "\n";
         }
         return d;
     }
-
 }
 
 class ShapeManagement {
