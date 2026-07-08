@@ -1,6 +1,7 @@
 
 import java.util.ArrayList;
 
+// Class representing a coordinate point in 2D space
 class Coordinates { 
     private int x; // x coordinate
     private int y; // y coordinate
@@ -51,34 +52,42 @@ class Coordinates {
 
 }
 
+// Abstract class representing a shape with a position and number of sides
 public abstract class Shape {
-    private Coordinates position;
-    private int sides;
+    private Coordinates position; // position of the shape
+    private int sides; // number of sides of the shape
 
+    // Constructor to initialise the shape with its number of sides and position
     public Shape (int sides, Coordinates position) {
         this.sides = sides;
         this.position = position;
     }
-
+    // Getter method for the position of the shape
     public Coordinates getCoordinates() {
         return position;
     }
-
-    public int getSides () {
+    // Getter method for the number of sides of the shape
+    public int getSides () { 
         return sides;
     }
+    // Setter method to update the position of the shape
+    public void setCoordinates (Coordinates newcoord) {
+        this.position = newcoord;
+    }
+    // Setter method to update the number of sides of the shape
+    public void translate (int dx, int dy) {
+        position.translate(dx, dy);
+    }
+    // Method to scale the shape by a given factor and sign
+    public void scale (int factor, boolean sign) {
+        position.scale(factor, sign);
+    }
 
-    public void setCoordinates (Coordinates newcoord) {}
+    public abstract double  getArea(); // Abstract method to calculate the area of the shape
 
-    public void translate (int dx, int dy) {}
+    public abstract double getPerimeter(); // Abstract method to calculate the perimeter of the shape
 
-    public void scale (int factor, boolean sign) {}
-
-    public abstract double  getArea();
-
-    public abstract double getPerimeter();
-
-    public abstract String display();
+    public abstract String display(); // Abstract method to display the shape's information as a string
 
 }
 
