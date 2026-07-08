@@ -133,7 +133,7 @@ class Rectangle extends Shape {
     // Overriding the display method to return a string representation of the rectangle's information
     @Override
     public String display() {
-        return "Rectangle: position = (" + getCoordinates().getX() + ", " + getCoordinates().getY() + 
+        return "Rectangle: position = (" + getCoordinates().display() + 
         "), width = " + width + 
         ", length = " + length +
         ", area = " + String.format("%.2f", getArea()) + 
@@ -160,7 +160,6 @@ class Square extends Shape {
         if (factor == 0) {
             return;
         }
-
         if (sign) {
             side = side * factor;
         } else {
@@ -230,34 +229,57 @@ class Circle extends Shape {
     }
 }
 
+// Class representing a triangle shape, extending the Shape class
 class Triangle extends Shape {
-    public Coordinates vertex2;
-    public Coordinates vertex3;
+    public Coordinates vertex2; // second vertex of the triangle
+    public Coordinates vertex3; // third vertex of the triangle
 
-    public Triangle (int sides, Coordinates vertex1, Coordinates vertex2, Coordinates vertex3) {
-        super(sides, vertex1);
+    // Constructor to initialize the triangle with its three vertices
+    public Triangle (Coordinates vertex1, Coordinates vertex2, Coordinates vertex3) {
+        super(3, vertex1);
         this.vertex2 = vertex2;
         this.vertex3 = vertex3;
     }
-
+    // Overriding the translate method to translate all three vertices of the triangle
+    @Override
+    public void translate(int dx, int dy) {
+        super.translate(dx, dy);
+        vertex2.translate(dx, dy);
+        vertex3.translate(dx, dy);
+    }
+    // Overriding the scale method to scale all three vertices of the triangle
+    @Override
+    public void scale(int factor, boolean sign) {
+        getCoordinates().scale(factor, sign);
+        vertex2.scale(factor, sign);
+        vertex3.scale(factor, sign);
+    }
+    // Overriding the getArea method to calculate the area of the triangle using Heron's formula
     @Override
     public double getArea() {
-        double a = 0;
-        return a;
+        double a = getCoordinates().distance(vertex2); // Distance between vertex1 and vertex2
+        double b = vertex2.distance(vertex3); // Distance between vertex2 and vertex3
+        double c = vertex3.distance(getCoordinates()); // Distance between vertex3 and vertex1
+        double s = (a + b + c) / 2; // Semi-perimeter
+        return Math.sqrt(s * (s - a) * (s - b) * (s - c)); // Heron's formula
     }
-
+    // Overriding the getPerimeter method to calculate the perimeter of the triangle
     @Override
     public double getPerimeter() {
-        double p = 0;
-        return p;
+        double a = getCoordinates().distance(vertex2);
+        double b = vertex2.distance(vertex3);
+        double c = vertex3.distance(getCoordinates());
+        return a + b + c; // Sum of the lengths of the three sides
     }
-
+    // Overriding the display method to return a string representation of the triangle's information
     @Override
     public String display() {
-        String d = "";
-        return d;
+        return "Triangle: vertex1 = (" + getCoordinates().display() + 
+        "), vertex2 = (" + vertex2.display() + 
+        "), vertex3 = (" + vertex3.display() + 
+        "), area = " + String.format("%.2f", getArea()) + 
+        ", perimeter = " + String.format("%.2f", getPerimeter());
     }
-
 }
 
 class ShapeList  {
