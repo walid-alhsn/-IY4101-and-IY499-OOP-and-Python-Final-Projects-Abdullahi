@@ -1,37 +1,53 @@
 
 import java.util.ArrayList;
 
-class Coordinates {
-    private int x;
-    private int y;
+class Coordinates { 
+    private int x; // x coordinate
+    private int y; // y coordinate
 
     public Coordinates (int x, int y) {
-        this.x = x;
+        this.x = x; 
         this.y = y;
     }
-
+    // Getter methods for x and y coordinates
     public int getX() {
         return x;
     }
-
+    // Getter method for y coordinate
     public int getY() {
         return y;
     }
-
+    // Method to calculate the distance between two coordinates
     public double distance(Coordinates p) {
-        double distance = 0;
-        return distance;
+        int dx = this.x - p.getX();
+        int dy = this.y - p.getY();
+
+        return Math.sqrt((dx * dx) + (dy * dy));
     }
+    // Method to translate the coordinates by a given amount
+    public void translate(int dx, int dy) {
+        x = x + dx;
+        y = y + dy;
+    }
+    // Method to scale the coordinates by a given factor
+    public void scale(int factor, boolean sign) {
+        if (factor == 0) {
+            System.out.println("Scale factor cannot be zero.");
+            return;
+        }
 
-    public void translate(int dx, int dy) {}
-
-    public void scale(int factor, boolean sign) {}
-
+        if (sign) {
+            x = x * factor;
+            y = y * factor;
+        } else {
+            x = x / factor;
+            y = y / factor;
+        }
+    }
+    // Method to display the coordinates as a string
     public String display() {
-        String display = "";
-        return display;
+        return "X = " + x + ", Y = " + y;
     }
-
 
 }
 
