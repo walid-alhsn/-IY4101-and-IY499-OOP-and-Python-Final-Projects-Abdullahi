@@ -143,32 +143,49 @@ class Rectangle extends Shape {
 
 }
 
+// Class representing a square shape, extending the Shape class
 class Square extends Shape {
-    public double side;
+    public double side; // side length of the square
 
-    public Square (Coordinates position, int sides, double side) {
-        super(sides, position);
+    // Constructor to initialise the square with its position and side length
+    public Square (Coordinates position, double side) {
+        super(4, position);
         this.side = side;
     }
+    // Overriding the scale method to scale the square's side length
+    @Override
+    public void scale(int factor, boolean sign) {
+        super.scale(factor, sign);
 
+        // Check if the scale factor is zero to avoid division by zero
+        if (factor == 0) {
+            return;
+        }
+
+        if (sign) {
+            side = side * factor;
+        } else {
+            side = side / factor;
+        }
+    }
+    // Overriding the getArea method to calculate the area of the square
     @Override
     public double getArea() {
-        double a = 0;
-        return a;
+        return side * side; // Formula for area of a square
     }
-
+    // Overriding the getPerimeter method to calculate the perimeter of the square
     @Override
     public double getPerimeter() {
-        double p = 0;
-        return p;
+        return 4 * side; // Formula for perimeter of a square
     }
-
+    // Overriding the display method to return a string representation of the square's information
     @Override
     public String display() {
-        String d = "";
-        return d;
+        return "Square: position = (" + getCoordinates().display() + 
+        "), side = " + side +
+        ", area = " + String.format("%.2f", getArea()) + 
+        ", perimeter = " + String.format("%.2f", getPerimeter());
     }
-    
 
 }
 
