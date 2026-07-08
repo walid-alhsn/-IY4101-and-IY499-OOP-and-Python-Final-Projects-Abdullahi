@@ -140,7 +140,6 @@ class Rectangle extends Shape {
         ", perimeter = " + String.format("%.2f", getPerimeter());
 
     }
-
 }
 
 // Class representing a square shape, extending the Shape class
@@ -186,36 +185,49 @@ class Square extends Shape {
         ", area = " + String.format("%.2f", getArea()) + 
         ", perimeter = " + String.format("%.2f", getPerimeter());
     }
-
 }
 
+// Class representing a circle shape, extending the Shape class
 class Circle extends Shape {
-    public double radius;
+    public double radius; // radius of the circle
 
-    public Circle(Coordinates position, int sides, double radius) {
-        super(sides, position);
+    // Constructor to initialize the circle with its position and radius
+    public Circle(Coordinates position, double radius) {
+        super(0, position);
         this.radius = radius;
     }
-
+    // Overriding the scale method to scale the circle's radius
+    @Override
+    public void scale(int factor, boolean sign) {
+        super.scale(factor, sign);
+        // Check if the scale factor is zero to avoid division by zero
+        if (factor == 0) {
+            return;
+        }
+        if (sign) {
+            radius = radius * factor;
+        } else {
+            radius = radius / factor;
+        }
+    }
+    // Overriding the getArea method to calculate the area of the circle
     @Override
     public double getArea() {
-        double a = 0;
-        return a;
+        return Math.PI * radius * radius; // Formula for area of a circle
     }
-
+    // Overriding the getPerimeter method to calculate the perimeter (circumference) of the circle
     @Override
     public double getPerimeter() {
-        double p = 0;
-        return p;
+        return 2 * Math.PI * radius; // Formula for perimeter (circumference) of a circle
     }
-
+    // Overriding the display method to return a string representation of the circle's information
     @Override
     public String display() {
-        String d = "";
-        return d;
+       return "Circle: center = (" + getCoordinates().display() + 
+        "), radius = " + radius +
+        ", area = " + String.format("%.2f", getArea()) + 
+        ", perimeter = " + String.format("%.2f", getPerimeter());
     }
-
-
 }
 
 class Triangle extends Shape {
