@@ -525,13 +525,39 @@ public class ShapeManagement {
     // Handles the remove shape option.
     private static void removeShapeMenu(Scanner input, ShapeList shapeList) {
         int pos = readInt(input, "\nEnter the position of the shape to remove: ");
+
+        Shape existingShape = shapeList.getShape(pos);
+        if (existingShape == null) {
+            return;
+        }
+
+        OUTER:
+        while (true) {
+            String confirmation = readString(input, "Are you sure you want to remove the shape at position " + pos + "? (yes/no): ").trim().toLowerCase();
+            switch (confirmation) {
+                case "yes", "y" -> {
+                    break OUTER;
+                }
+                case "no", "n" -> {
+                    System.out.println("Shape removal cancelled.");
+                    return;
+                }
+                default -> System.out.println("Please enter yes or no.");
+            }
+        }
+
         Shape removedShape = shapeList.removeShape(pos);
         // Check if a shape was actually removed and display its information
         if (removedShape != null) {
-            System.out.println("Removed shape: " + removedShape.display());
+            System.out.println("\nRemoved shape: " + removedShape.display());
         } else {
             System.out.println("No shape found at the specified position.");
         }
+    }
+    // Reads a string input from the user.
+    private static String readString(Scanner input, String string) {
+        System.out.print(string);
+        return input.nextLine().trim();
     }
 
     // Handles the get shape option.
@@ -540,7 +566,7 @@ public class ShapeManagement {
         Shape shape = shapeList.getShape(pos);
         // Check if the shape exists at the given position
         if (shape != null) {
-            System.out.println("Shape information:");
+            System.out.println("\nShape information:");
             System.out.println(shape.display());
         } else {
             System.out.println("No shape found at the specified position.");
@@ -553,6 +579,7 @@ public class ShapeManagement {
         Shape shape = shapeList.getShape(pos);
         // Check if the shape exists at the given position
         if (shape != null) {
+            System.out.println("\nShape name: " + shape.getClass().getSimpleName());
             System.out.println("Area = " + String.format("%.2f", shape.getArea()));
             System.out.println("Perimeter = " + String.format("%.2f", shape.getPerimeter()));
         } else {
@@ -563,7 +590,7 @@ public class ShapeManagement {
     // Handles the translate all shapes option.
     private static void translateShapesMenu(Scanner input, ShapeList shapeList) {
         int dx = readInt(input, "\nEnter x distance: ");
-        int dy = readInt(input, "\nEnter y distance: ");
+        int dy = readInt(input, "Enter y distance: ");
 
         shapeList.translateShapes(dx, dy);
         System.out.println("All shapes translated successfully.");
@@ -605,7 +632,9 @@ public class ShapeManagement {
             System.out.print(message);
         }
 
-        return input.nextInt();
+        int value = input.nextInt();
+        input.nextLine();
+        return value;
     }
 
     // Reads a positive whole number safely.
@@ -629,7 +658,7 @@ public class ShapeManagement {
         boolean translated = shapeList.translateShape(pos, dx, dy);
         // Check if the shape was successfully translated and display the result
         if (translated) {
-            System.out.println("Shape translated successfully.");
+            System.out.println("Shape translated successfully. New position: " + shapeList.getShape(pos).getCoordinates().display());
         } else {
             System.out.println("Shape could not be translated.");
         }
@@ -656,7 +685,7 @@ public class ShapeManagement {
 
         // Check if the shape was successfully scaled and display the result
         if (scaled) {
-            System.out.println("Shape scaled successfully.");
+            System.out.println("Shape scaled successfully. New size: " + shapeList.getShape(pos).getSides());
         } else {
             System.out.println("Shape could not be scaled.");
         }
