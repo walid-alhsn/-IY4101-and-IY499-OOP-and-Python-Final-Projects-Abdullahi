@@ -91,32 +91,53 @@ public abstract class Shape {
 
 }
 
+// Class representing a rectangle shape, extending the Shape class
 class Rectangle extends Shape {
-    public double width;
-    public double length;
+    public double width; // width of the rectangle
+    public double length; // length of the rectangle
 
-    public Rectangle (Coordinates position, int sides, double width, double length) {
-        super(sides, position);
+    // Constructor to initialize the rectangle with its position, width, and length
+    public Rectangle (Coordinates position, double width, double length) {
+        super(4, position);
         this.width = width;
         this.length = length;
     }
+    // Overriding the scale method to scale the rectangle's dimensions
+    @Override
+    public void scale(int factor, boolean sign) {
+        super.scale(factor, sign);
+        // Check if the scale factor is zero to avoid division by zero
+        if (factor == 0) {
+            return;
+        }
 
+        if (sign) {
+            width = width * factor;
+            length = length * factor;
+        } else {
+            width = width / factor;
+            length = length / factor;
+        }
+
+    }
+    // Overriding the getArea method to calculate the area of the rectangle
     @Override
     public double getArea() {
-        double a = 0;
-        return a;
+        return width * length; // Formula for area of a rectangle
     }
-
+    // Overriding the getPerimeter method to calculate the perimeter of the rectangle
     @Override
     public double getPerimeter() {
-        double p = 0;
-        return p;
+        return 2 * (width + length); // Formula for perimeter of a rectangle
     }
-
+    // Overriding the display method to return a string representation of the rectangle's information
     @Override
     public String display() {
-        String d = "";
-        return d;
+        return "Rectangle: position = (" + getCoordinates().getX() + ", " + getCoordinates().getY() + 
+        "), width = " + width + 
+        ", length = " + length +
+        ", area = " + String.format("%.2f", getArea()) + 
+        ", perimeter = " + String.format("%.2f", getPerimeter());
 
     }
 
