@@ -1,5 +1,5 @@
-
 import java.util.ArrayList;
+import java.util.Scanner;
 
 // Class representing a coordinate point in 2D space
 class Coordinates { 
@@ -361,13 +361,230 @@ class ShapeList  {
     }
 }
 
-class ShapeManagement {
+// Main class for managing shapes and user interaction
+public class ShapeManagement {
     public static void main(String[] args) {
-        ShapeList shapeList = new ShapeList();
-        Coordinates c1 = new Coordinates(0, 0);
-        Rectangle r1 = new Rectangle(c1, 4, 5, 10);
-        shapeList.addShape(r1);
-        System.out.println(shapeList.display());
+        try (Scanner input = new Scanner(System.in)) {
+            ShapeList shapeList = new ShapeList();
+            boolean running = true;
+            
+            System.out.println("Shape Management Application");
+            System.out.println("============================");
+            
+            while (running) {
+                displayMenu();
+                int choice = readInt(input, "Enter your choice: ");
+                
+                switch (choice) {
+                    case 1 -> addShapeMenu(input, shapeList);
+                        
+                    case 2 -> removeShapeMenu(input, shapeList);
+                        
+                    case 3 -> getShapeMenu(input, shapeList);
+                        
+                    case 4 -> areaAndPerimeterMenu(input, shapeList);
+                        
+                    case 5 -> {
+                        System.out.println("\nAll Shapes");
+                        System.out.println("----------");
+                        System.out.println(shapeList.display());
+                    }
+                        
+                    case 6 -> translateShapesMenu(input, shapeList);
+                        
+                    case 7 -> scaleShapesMenu(input, shapeList);
+                        
+                    case 0 -> {
+                        running = false;
+                        System.out.println("Program ended. Goodbye.");
+                    }
+                        
+                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 7.");
+                }
+            }
+        }
+    }
+
+    // Displays the main menu options.
+    private static void displayMenu() {
+        System.out.println("\nMain Menu");
+        System.out.println("---------");
+        System.out.println("1. Add a shape");
+        System.out.println("2. Remove a shape by position");
+        System.out.println("3. Get information about a shape by position");
+        System.out.println("4. Display area and perimeter of a shape by position");
+        System.out.println("5. Display information of all shapes");
+        System.out.println("6. Translate all shapes");
+        System.out.println("7. Scale all shapes");
+        System.out.println("0. Quit program");
+    }
+
+    // Handles the add shape option.
+    private static void addShapeMenu(Scanner input, ShapeList shapeList) {
+        System.out.println("\nChoose Shape Type");
+        System.out.println("-----------------");
+        System.out.println("1. Rectangle");
+        System.out.println("2. Square");
+        System.out.println("3. Circle");
+        System.out.println("4. Triangle");
+
+        int shapeChoice = readInt(input, "\nEnter shape type: ");
+
+        switch (shapeChoice) {
+            case 1 -> addRectangle(input, shapeList);
+
+            case 2 -> addSquare(input, shapeList);
+
+            case 3 -> addCircle(input, shapeList);
+
+            case 4 -> addTriangle(input, shapeList);
+
+            default -> System.out.println("Invalid shape type.");
+        }
+    }
+
+    // Creates and adds a rectangle.
+    private static void addRectangle(Scanner input, ShapeList shapeList) {
+        System.out.println("\nAdd Rectangle");
+        Coordinates position = readCoordinates(input, "position");
+        int width = readPositiveInt(input, "Enter width: ");
+        int length = readPositiveInt(input, "Enter length: ");
+
+        Rectangle rectangle = new Rectangle(position, width, length);
+        shapeList.addShape(rectangle);
+        System.out.println("Rectangle added successfully.");
+    }
+
+    // Creates and adds a square.
+    private static void addSquare(Scanner input, ShapeList shapeList) {
+        System.out.println("\nAdd Square");
+        Coordinates position = readCoordinates(input, "position");
+        int side = readPositiveInt(input, "Enter side: ");
+
+        Square square = new Square(position, side);
+        shapeList.addShape(square);
+        System.out.println("Square added successfully.");
+    }
+
+    // Creates and adds a circle.
+    private static void addCircle(Scanner input, ShapeList shapeList) {
+        System.out.println("\nAdd Circle");
+        Coordinates position = readCoordinates(input, "centre");
+        int radius = readPositiveInt(input, "Enter radius: ");
+
+        Circle circle = new Circle(position, radius);
+        shapeList.addShape(circle);
+        System.out.println("Circle added successfully.");
+    }
+
+    // Creates and adds a triangle.
+    private static void addTriangle(Scanner input, ShapeList shapeList) {
+        System.out.println("\nAdd Triangle");
+        Coordinates vertex1 = readCoordinates(input, "vertex 1");
+        Coordinates vertex2 = readCoordinates(input, "vertex 2");
+        Coordinates vertex3 = readCoordinates(input, "vertex 3");
+
+        Triangle triangle = new Triangle(vertex1, vertex2, vertex3);
+        shapeList.addShape(triangle);
+        System.out.println("Triangle added successfully.");
+    }
+
+    // Handles the remove shape option.
+    private static void removeShapeMenu(Scanner input, ShapeList shapeList) {
+        int pos = readInt(input, "\nEnter the position of the shape to remove: ");
+        Shape removedShape = shapeList.removeShape(pos);
+        // Check if a shape was actually removed and display its information
+        if (removedShape != null) {
+            System.out.println("Removed shape: " + removedShape.display());
+        } else {
+            System.out.println("No shape found at the specified position.");
+        }
+    }
+
+    // Handles the get shape option.
+    private static void getShapeMenu(Scanner input, ShapeList shapeList) {
+        int pos = readInt(input, "\nEnter the position of the shape: ");
+        Shape shape = shapeList.getShape(pos);
+        // Check if the shape exists at the given position
+        if (shape != null) {
+            System.out.println("Shape information:");
+            System.out.println(shape.display());
+        } else {
+            System.out.println("No shape found at the specified position.");
+        }
+    }
+
+    // Handles the area and perimeter option.
+    private static void areaAndPerimeterMenu(Scanner input, ShapeList shapeList) {
+        int pos = readInt(input, "\nEnter the position of the shape: ");
+        Shape shape = shapeList.getShape(pos);
+        // Check if the shape exists at the given position
+        if (shape != null) {
+            System.out.println("Area = " + String.format("%.2f", shape.getArea()));
+            System.out.println("Perimeter = " + String.format("%.2f", shape.getPerimeter()));
+        } else {
+            System.out.println("No shape found at the specified position.");
+        }
+    }
+
+    // Handles the translate all shapes option.
+    private static void translateShapesMenu(Scanner input, ShapeList shapeList) {
+        int dx = readInt(input, "\nEnter x distance: ");
+        int dy = readInt(input, "\nEnter y distance: ");
+
+        shapeList.translateShapes(dx, dy);
+        System.out.println("All shapes translated successfully.");
+    }
+
+    // Handles the scale all shapes option.
+    private static void scaleShapesMenu(Scanner input, ShapeList shapeList) {
+        int factor = readPositiveInt(input, "\nEnter scale factor: ");
+
+        System.out.println("1. Increase/multiply shapes");
+        System.out.println("2. Decrease/divide shapes");
+        int scaleChoice = readInt(input, "\nEnter scaling option: ");
+        // Validate the scaling option input
+        while (scaleChoice != 1 && scaleChoice != 2) {
+            System.out.println("Invalid option. Choose 1 or 2.");
+            scaleChoice = readInt(input, "\nEnter scaling option: ");
+        }
+        // Determine the sign for scaling based on user choice
+        boolean sign = scaleChoice == 1;
+        shapeList.scale(factor, sign);
+        System.out.println("All shapes scaled successfully.");
+    }
+
+    // Reads a pair of x and y coordinates.
+    private static Coordinates readCoordinates(Scanner input, String coordinateName) {
+        System.out.println("Enter " + coordinateName + " coordinates:");
+        int x = readInt(input, "x: ");
+        int y = readInt(input, "y: ");
+        return new Coordinates(x, y);
+    }
+
+    // Reads a whole number safely.
+    private static int readInt(Scanner input, String message) {
+        System.out.print(message);
+        // Loop until a valid integer is entered
+        while (!input.hasNextInt()) {
+            System.out.println("Invalid input. Please enter a whole number.");
+            input.next();
+            System.out.print(message);
+        }
+
+        return input.nextInt();
+    }
+
+    // Reads a positive whole number safely.
+    private static int readPositiveInt(Scanner input, String message) {
+        int value = readInt(input, message);
+        // Ensure the value is greater than zero
+        while (value <= 0) {
+            System.out.println("Value must be greater than zero.");
+            value = readInt(input, message);
+        }
+
+        return value;
     }
 }
 
