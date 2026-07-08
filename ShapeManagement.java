@@ -50,14 +50,14 @@ class Coordinates {
         return "X = " + x + ", Y = " + y;
     }
 
+
 }
-
 // Abstract class representing a shape with a position and number of sides
-public abstract class Shape {
+abstract class Shape {
     private Coordinates position; // position of the shape
-    private int sides; // number of sides of the shape
+    private final int sides; // number of sides of the shape
 
-    // Constructor to initialise the shape with its number of sides and position
+    // Constructor to initialize the shape with its number of sides and position
     public Shape (int sides, Coordinates position) {
         this.sides = sides;
         this.position = position;
@@ -90,14 +90,13 @@ public abstract class Shape {
     public abstract String display(); // Abstract method to display the shape's information as a string
 
 }
-
 // Class representing a rectangle shape, extending the Shape class
 class Rectangle extends Shape {
-    public double width; // width of the rectangle
-    public double length; // length of the rectangle
+    private int width; // width of the rectangle
+    private int length; // length of the rectangle
 
     // Constructor to initialize the rectangle with its position, width, and length
-    public Rectangle (Coordinates position, double width, double length) {
+    public Rectangle (Coordinates position, int width, int length) {
         super(4, position);
         this.width = width;
         this.length = length;
@@ -140,14 +139,15 @@ class Rectangle extends Shape {
         ", perimeter = " + String.format("%.2f", getPerimeter());
 
     }
+
 }
 
 // Class representing a square shape, extending the Shape class
 class Square extends Shape {
-    public double side; // side length of the square
+    private int side; // side length of the square
 
-    // Constructor to initialise the square with its position and side length
-    public Square (Coordinates position, double side) {
+    // Constructor to initialize the square with its position and side length
+    public Square (Coordinates position, int side) {
         super(4, position);
         this.side = side;
     }
@@ -184,14 +184,15 @@ class Square extends Shape {
         ", area = " + String.format("%.2f", getArea()) + 
         ", perimeter = " + String.format("%.2f", getPerimeter());
     }
+
 }
 
 // Class representing a circle shape, extending the Shape class
 class Circle extends Shape {
-    public double radius; // radius of the circle
+    private int radius; // radius of the circle
 
-    // Constructor to initialise the circle with its position and radius
-    public Circle(Coordinates position, double radius) {
+    // Constructor to initialize the circle with its position and radius
+    public Circle(Coordinates position, int radius) {
         super(0, position);
         this.radius = radius;
     }
@@ -234,7 +235,7 @@ class Triangle extends Shape {
     public Coordinates vertex2; // second vertex of the triangle
     public Coordinates vertex3; // third vertex of the triangle
 
-    // Constructor to initialise the triangle with its three vertices
+    // Constructor to initialize the triangle with its three vertices
     public Triangle (Coordinates vertex1, Coordinates vertex2, Coordinates vertex3) {
         super(3, vertex1);
         this.vertex2 = vertex2;
@@ -284,11 +285,11 @@ class Triangle extends Shape {
 
 // Class representing a list of shapes, allowing for adding, removing, and manipulating shapes
 class ShapeList  {
-    private ArrayList<Shape> listOfShapes; // List to store the shapes
+    private final ArrayList<Shape> listOfShapes; // List to store the shapes
 
-    // Constructor to initialise the ShapeList with an empty list of shapes
+    // Constructor to initialize the ShapeList with an empty list of shapes
     public ShapeList() {
-        this.listOfShapes = new ArrayList<Shape>();
+        this.listOfShapes = new ArrayList<>();
     }
     // Method to add a shape to the list
     public void addShape(Shape s) {
@@ -302,8 +303,8 @@ class ShapeList  {
     }
     // Method to get a shape at a specific position in the list
     public Shape getShape(int pos) {
-        // Check if the position is valid
-        if (pos < 0 || pos >= listOfShapes.size()) {
+        // Expect 1-based positions: valid when 1 <= pos <= size
+        if (pos <= 0 || pos > listOfShapes.size()) {
             System.out.println("Invalid position. No shape exists at position " + pos + ".");
             return null;
         }
@@ -312,10 +313,12 @@ class ShapeList  {
     }
     // Method to remove a shape at a specific position in the list
     public Shape removeShape(int pos) {
-        if (pos < 0 || pos >= listOfShapes.size()) {
+        // Expect 1-based positions: valid when 1 <= pos <= size
+        if (pos <= 0 || pos > listOfShapes.size()) {
             System.out.println("Invalid position. No shape exists at position " + pos + ".");
             return null;
         }
+
         return listOfShapes.remove(pos - 1);
     }
     // Method to calculate the area of a shape at a specific position in the list
@@ -359,6 +362,30 @@ class ShapeList  {
         }
         return d;
     }
+
+     // Translates one shape at a specific position.
+    public boolean translateShape(int pos, int dx, int dy) {
+        Shape shape = getShape(pos);
+
+        if (shape == null) {
+            return false;
+        }
+
+        shape.translate(dx, dy);
+        return true;
+    }
+
+    // Scales one shape at a specific position.
+    public boolean scaleShape(int pos, int factor, boolean sign) {
+        Shape shape = getShape(pos);
+
+        if (shape == null) {
+            return false;
+        }
+
+        shape.scale(factor, sign);
+        return true;
+    }
 }
 
 // Main class for managing shapes and user interaction
@@ -373,7 +400,7 @@ public class ShapeManagement {
             
             while (running) {
                 displayMenu();
-                int choice = readInt(input, "Enter your choice: ");
+                int choice = readInt(input, "\nEnter your choice: ");
                 
                 switch (choice) {
                     case 1 -> addShapeMenu(input, shapeList);
@@ -394,12 +421,16 @@ public class ShapeManagement {
                         
                     case 7 -> scaleShapesMenu(input, shapeList);
                         
+                    case 8 -> translateOneShapeMenu(input, shapeList);
+                        
+                    case 9 -> scaleOneShapeMenu(input, shapeList);
+                        
                     case 0 -> {
                         running = false;
                         System.out.println("Program ended. Goodbye.");
                     }
                         
-                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 7.");
+                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 9.");
                 }
             }
         }
@@ -416,6 +447,8 @@ public class ShapeManagement {
         System.out.println("5. Display information of all shapes");
         System.out.println("6. Translate all shapes");
         System.out.println("7. Scale all shapes");
+        System.out.println("8. Translate one shape by position");
+        System.out.println("9. Scale one shape by position");
         System.out.println("0. Quit program");
     }
 
@@ -586,7 +619,51 @@ public class ShapeManagement {
 
         return value;
     }
+
+    // Handles the translate one shape option.
+    private static void translateOneShapeMenu(Scanner input, ShapeList shapeList) {
+        int pos = readInt(input, "\nEnter the position of the shape to translate: ");
+        int dx = readInt(input, "Enter x distance: ");
+        int dy = readInt(input, "Enter y distance: ");
+
+        boolean translated = shapeList.translateShape(pos, dx, dy);
+        // Check if the shape was successfully translated and display the result
+        if (translated) {
+            System.out.println("Shape translated successfully.");
+        } else {
+            System.out.println("Shape could not be translated.");
+        }
+    }
+
+    // Handles the scale one shape option.
+    private static void scaleOneShapeMenu(Scanner input, ShapeList shapeList) {
+        int pos = readInt(input, "\nEnter the position of the shape to scale: ");
+        int factor = readPositiveInt(input, "Enter scale factor: ");
+
+        System.out.println("1. Increase/multiply shape");
+        System.out.println("2. Decrease/divide shape");
+
+        int scaleChoice = readInt(input, "\nEnter scaling option: ");
+        // Validate the scaling option input
+        while (scaleChoice != 1 && scaleChoice != 2) {
+            System.out.println("Invalid option. Choose 1 or 2.");
+            scaleChoice = readInt(input, "\nEnter scaling option: ");
+        }
+
+        boolean sign = scaleChoice == 1;
+
+        boolean scaled = shapeList.scaleShape(pos, factor, sign);
+
+        // Check if the shape was successfully scaled and display the result
+        if (scaled) {
+            System.out.println("Shape scaled successfully.");
+        } else {
+            System.out.println("Shape could not be scaled.");
+        }
+    }
 }
+
+
 
 
 
