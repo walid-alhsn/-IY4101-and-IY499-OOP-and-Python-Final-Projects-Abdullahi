@@ -395,7 +395,7 @@ public class ShapeManagement {
             ShapeList shapeList = new ShapeList();
             boolean running = true;
             
-            System.out.println("Shape Management Application");
+            System.out.println("\nShape Management Application");
             System.out.println("============================");
             
             while (running) {
