@@ -232,8 +232,8 @@ class Circle extends Shape {
 
 // Class representing a triangle shape, extending the Shape class
 class Triangle extends Shape {
-    public Coordinates vertex2; // second vertex of the triangle
-    public Coordinates vertex3; // third vertex of the triangle
+    private final Coordinates vertex2; // second vertex of the triangle
+    private final Coordinates vertex3; // third vertex of the triangle
 
     // Constructor to initialize the triangle with its three vertices
     public Triangle (Coordinates vertex1, Coordinates vertex2, Coordinates vertex3) {
@@ -427,12 +427,14 @@ public class ShapeManagement {
                         
                     case 10 -> addSampleTestShapes(shapeList);
                         
+                    case 11 -> drawGeneralShapeMenu(input);
+                        
                     case 0 -> {
                         running = false;
                         System.out.println("Program ended. Goodbye.\n");
                     }
                         
-                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 10.");
+                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 11.");
                 }
             }
         }
@@ -452,6 +454,7 @@ public class ShapeManagement {
         System.out.println("8. Translate one shape by position");
         System.out.println("9. Scale one shape by position");
         System.out.println("10. Add sample test shapes (Adds shapes required for test plan in brief)");
+        System.out.println("11. Draw a general shape");
         System.out.println("0. Quit program");
     }
 
@@ -744,8 +747,72 @@ public class ShapeManagement {
         System.out.println("\nSample test shapes added successfully.");
         System.out.println("Total shapes in list: " + shapeList.getNumberOfShapes());
     }
+
+    // Handles the draw general shape option.
+    private static void drawGeneralShapeMenu(Scanner input) {
+        System.out.println("\nChoose a shape to draw");
+        System.out.println("----------------------");
+        System.out.println("1. Rectangle");
+        System.out.println("2. Square");
+        System.out.println("3. Circle");
+        System.out.println("4. Triangle");
+
+        int choice = readInt(input, "\nEnter shape type: ");
+
+        switch (choice) {
+            case 1 -> drawRectangle();
+            case 2 -> drawSquare();
+            case 3 -> drawCircle();
+            case 4 -> drawTriangle();
+            default -> System.out.println("Invalid shape type.");
+        }
+    }
+
+    // Draws a general rectangle using text (*) characters.
+    private static void drawRectangle() {
+        System.out.println("\nGeneral Rectangle");
+        System.out.println("-----------------");
+        System.out.println("******************");
+        System.out.println("*                *");
+        System.out.println("*                *");
+        System.out.println("*                *");
+        System.out.println("******************");
+    }
+
+    // Draws a general square using text (*) characters.
+    private static void drawSquare() {
+        System.out.println("\nGeneral Square");
+        System.out.println("--------------");
+        System.out.println("*************");
+        System.out.println("*           *");
+        System.out.println("*           *");
+        System.out.println("*           *");
+        System.out.println("*           *");
+        System.out.println("*           *");
+        System.out.println("*************");
+    }
+
+    // Draws a general circle using text (*) characters.
+    private static void drawCircle() {
+        System.out.println("\nGeneral Circle");
+        System.out.println("--------------");
+        System.out.println("   ******   ");
+        System.out.println(" *        * ");
+        System.out.println("*          *");
+        System.out.println("*          *");
+        System.out.println(" *        * ");
+        System.out.println("   ******   ");
+    }
+
+    // Draws a general triangle using text (*) characters.
+    private static void drawTriangle() {
+        System.out.println("\nGeneral Triangle");
+        System.out.println("----------------");
+        System.out.println("     *");
+        System.out.println("    ***");
+        System.out.println("   *****");
+        System.out.println("  *******");
+        System.out.println(" *********");
+        System.out.println("***********");
+    }
 }
-
-
-
-
