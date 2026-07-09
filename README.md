@@ -248,6 +248,20 @@ ShapeManagementApplication/
 ├── README.md
 └── Report.docx
 ```
+## Assessment Requirements Covered
+
+This project covers the main requirements of the assignment:
+
+- Implements `Coordinates`, `Shape`, `Rectangle`, `Square`, `Circle`, `Triangle`, `ShapeList`, and `ShapeManagement`
+- Uses an abstract `Shape` superclass
+- Uses inheritance for the four shape subclasses
+- Uses polymorphism through `ArrayList<Shape>`
+- Calculates area and perimeter for each shape
+- Translates and scales shapes
+- Handles invalid positions without crashing
+- Includes a menu-driven console application
+- Includes sample test shapes from the assignment brief
+- Includes additional usability features such as individual translate/scale and general shape drawing
 
 ## Notes
 
