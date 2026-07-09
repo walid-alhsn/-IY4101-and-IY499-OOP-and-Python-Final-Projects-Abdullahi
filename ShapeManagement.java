@@ -425,12 +425,14 @@ public class ShapeManagement {
                         
                     case 9 -> scaleOneShapeMenu(input, shapeList);
                         
+                    case 10 -> addSampleTestShapes(shapeList);
+                        
                     case 0 -> {
                         running = false;
-                        System.out.println("Program ended. Goodbye.");
+                        System.out.println("Program ended. Goodbye.\n");
                     }
                         
-                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 9.");
+                    default -> System.out.println("Invalid menu choice. Please choose a number from 0 to 10.");
                 }
             }
         }
@@ -449,6 +451,7 @@ public class ShapeManagement {
         System.out.println("7. Scale all shapes");
         System.out.println("8. Translate one shape by position");
         System.out.println("9. Scale one shape by position");
+        System.out.println("10. Add sample test shapes (Adds shapes required for test plan in brief)");
         System.out.println("0. Quit program");
     }
 
@@ -690,8 +693,58 @@ public class ShapeManagement {
             System.out.println("Shape could not be scaled.");
         }
     }
-}
 
+    // Adds the required test shapes from the brief and three extra shapes.
+    private static void addSampleTestShapes(ShapeList shapeList) {
+        // Required shape 1: triangle
+        shapeList.addShape(new Triangle(
+                new Coordinates(60, 60),
+                new Coordinates(30, 80),
+                new Coordinates(80, 80)
+        ));
+
+        // Required shape 2: rectangle
+        shapeList.addShape(new Rectangle(
+                new Coordinates(110, 30),
+                20,
+                25
+        ));
+
+        // Required shape 3: circle
+        shapeList.addShape(new Circle(
+                new Coordinates(90, 110),
+                35
+        ));
+
+        // Required shape 4: square
+        shapeList.addShape(new Square(
+                new Coordinates(100, 50),
+                30
+        ));
+
+        // Extra shape 1: rectangle of our choice
+        shapeList.addShape(new Rectangle(
+                new Coordinates(20, 20),
+                15,
+                10
+        ));
+
+        // Extra shape 2: circle of our choice
+        shapeList.addShape(new Circle(
+                new Coordinates(50, 70),
+                12
+        ));
+
+        // Extra shape 3: square of our choice
+        shapeList.addShape(new Square(
+                new Coordinates(75, 40),
+                18
+        ));
+
+        System.out.println("\nSample test shapes added successfully.");
+        System.out.println("Total shapes in list: " + shapeList.getNumberOfShapes());
+    }
+}
 
 
 
