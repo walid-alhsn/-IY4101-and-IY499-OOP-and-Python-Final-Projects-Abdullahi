@@ -537,29 +537,33 @@ public class ShapeManagement {
             return;
         }
 
-        OUTER:
-        while (true) {
-            String confirmation = readString(input, "Are you sure you want to remove the shape at position " + pos + "? (yes/no): ").trim().toLowerCase();
-            switch (confirmation) {
-                case "yes", "y" -> {
-                    break OUTER;
-                }
-                case "no", "n" -> {
-                    System.out.println("Shape removal cancelled.");
-                    return;
-                }
-                default -> System.out.println("Please enter yes or no.");
+        boolean confirmed = false;
+
+        while (!confirmed) {
+            String confirmation = readString(input,
+                    "Are you sure you want to remove the shape at position " + pos + "? (yes/no): ")
+                    .trim()
+                    .toLowerCase();
+
+            if (confirmation.equals("yes") || confirmation.equals("y")) {
+                confirmed = true;
+            } else if (confirmation.equals("no") || confirmation.equals("n")) {
+                System.out.println("Shape removal cancelled.");
+                return;
+            } else {
+                System.out.println("Please enter yes or no.");
             }
         }
 
         Shape removedShape = shapeList.removeShape(pos);
-        // Check if a shape was actually removed and display its information
+
         if (removedShape != null) {
             System.out.println("\nRemoved shape: " + removedShape.display());
         } else {
             System.out.println("No shape found at the specified position.");
         }
     }
+
     // Reads a string input from the user.
     private static String readString(Scanner input, String string) {
         System.out.print(string);
@@ -691,7 +695,7 @@ public class ShapeManagement {
 
         // Check if the shape was successfully scaled and display the result
         if (scaled) {
-            System.out.println("Shape scaled successfully. New size: " + shapeList.getShape(pos).getSides());
+            System.out.println("Shape scaled successfully. Updated shape: " + shapeList.getShape(pos).display());
         } else {
             System.out.println("Shape could not be scaled.");
         }
