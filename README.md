@@ -23,7 +23,7 @@ The program provides a menu-driven console interface with the following options:
 9. Scale one shape by position
 10. Add sample test shapes
 11. Draw a general shape
-12. Quit program
+0. Quit program
 
 The program includes both the required assessment functionality and additional features to improve usability.
 
@@ -276,7 +276,7 @@ This project covers the main requirements of the assignment:
 
 This project should be stored in a Version Control System such as GitHub or GitLab. Regular commits should show the development progress.
 
-Suggested commit milestones:
+Commit milestones:
 
 1. Initial project setup
 2. Add `Coordinates` class
