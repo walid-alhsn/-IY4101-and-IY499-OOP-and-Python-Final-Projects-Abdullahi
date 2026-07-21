@@ -1,6 +1,7 @@
 # AIRLINE / FLIGHT BOOKING MANAGEMENT SYSTEM
 
 import hashlib
+import hmac
 import json
 import secrets
 import uuid
@@ -345,37 +346,133 @@ def register_user(
 
     return False, "The account could not be saved."
 
+def find_user_by_email(email, users):
+    """
+    Find and return a user with the supplied email address.
+
+    Returns None if the email address is not registered.
+    """
+
+    cleaned_email = normalise_email(email)
+
+    for user in users:
+        saved_email = normalise_email(user.get("email", ""))
+
+        if saved_email == cleaned_email:
+            return user
+
+    return None
+
+
+def authenticate_user(email, password):
+    """
+    Authenticate a user using their email address and password.
+
+    Returns:
+        True, success message and user details when login succeeds.
+        False, error message and None when login fails.
+    """
+
+    email = email.strip()
+
+    if email == "" or password == "":
+        return False, "Email and password are required.", None
+
+    users = load_json_file(USERS_FILE)
+
+    if not isinstance(users, list):
+        return False, "The user data file has an invalid structure.", None
+
+    user = find_user_by_email(email, users)
+
+    if user is None:
+        return False, "Invalid email address or password.", None
+
+    stored_salt = user.get("salt", "")
+    stored_hash = user.get("password_hash", "")
+
+    if stored_salt == "" or stored_hash == "":
+        return False, "The account data is incomplete.", None
+
+    try:
+        entered_hash = create_password_hash(
+            password,
+            stored_salt
+        )
+
+    except ValueError:
+        return False, "The account data is invalid.", None
+
+    if not hmac.compare_digest(entered_hash, stored_hash):
+        return False, "Invalid email address or password.", None
+
+    # Do not pass the password hash or salt to the GUI
+    authenticated_user = {
+        "user_id": user["user_id"],
+        "full_name": user["full_name"],
+        "email": user["email"],
+        "phone": user["phone"],
+        "role": user["role"]
+    }
+
+    return True, "Login successful.", authenticated_user
+
 # PROGRAM START
 
 def main():
     """
-    Prepare the data files and test user registration.
+    Prepare the data files and test user login.
     """
 
     create_data_files()
 
-    print("\nTesting user registration:")
+    # Create the test account only if it does not already exist
+    users = load_json_file(USERS_FILE)
 
-    success, message = register_user(
-        "Test Passenger",
+    if not email_exists("test@example.com", users):
+        register_user(
+            "Test Passenger",
+            "test@example.com",
+            "+44 7123 456789",
+            "Airline123",
+            "Airline123"
+        )
+
+    print("\nTest 1: Correct login")
+
+    success, message, user = authenticate_user(
         "test@example.com",
-        "+44 7123 456789",
-        "Airline123",
         "Airline123"
     )
 
-    print(f"Registration successful: {success}")
+    print(f"Successful: {success}")
     print(f"Message: {message}")
 
-    users = load_json_file(USERS_FILE)
+    if user is not None:
+        print(f"Logged-in user: {user['full_name']}")
+        print(f"Role: {user['role']}")
 
-    print(f"\nRegistered users: {len(users)}")
+    print("\nTest 2: Incorrect password")
 
-    if len(users) > 0:
-        print(f"User ID: {users[0]['user_id']}")
-        print(f"Name: {users[0]['full_name']}")
-        print(f"Email: {users[0]['email']}")
-        print(f"Role: {users[0]['role']}")
+    success, message, user = authenticate_user(
+        "test@example.com",
+        "WrongPassword123"
+    )
+
+    print(f"Successful: {success}")
+    print(f"Message: {message}")
+    print(f"User returned: {user}")
+
+    print("\nTest 3: Unregistered email")
+
+    success, message, user = authenticate_user(
+        "unknown@example.com",
+        "Airline123"
+    )
+
+    print(f"Successful: {success}")
+    print(f"Message: {message}")
+    print(f"User returned: {user}")
 
 if __name__ == "__main__":
     main()
