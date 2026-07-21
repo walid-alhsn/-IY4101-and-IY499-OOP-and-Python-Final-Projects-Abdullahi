@@ -1,6 +1,9 @@
 # AIRLINE / FLIGHT BOOKING MANAGEMENT SYSTEM
 
+import hashlib
 import json
+import secrets
+import uuid
 from pathlib import Path
 
 
@@ -81,7 +84,7 @@ def save_json_file(file_path, data):
     except OSError as error:
         print(f"Error saving {file_path.name}: {error}")
         return False
-        
+
 # VALIDATION FUNCTIONS
 
 def validate_name(name):
@@ -214,36 +217,165 @@ def validate_password(password):
 
     return True, ""
 
+# AUTHENTICATION FUNCTIONS
+
+def normalise_email(email):
+    """
+    Remove unnecessary spaces and convert an email address
+    to lowercase.
+    """
+
+    return email.strip().lower()
+
+
+def email_exists(email, users):
+    """
+    Check whether an email address is already registered.
+    """
+
+    email = normalise_email(email)
+
+    for user in users:
+        if normalise_email(user["email"]) == email:
+            return True
+
+    return False
+
+
+def generate_user_id():
+    """
+    Generate a unique user ID.
+    """
+
+    random_part = uuid.uuid4().hex[:8].upper()
+    return f"USR-{random_part}"
+
+
+def create_password_hash(password, salt):
+    """
+    Create a secure password hash using the supplied salt.
+    """
+
+    salt_bytes = bytes.fromhex(salt)
+    password_bytes = password.encode("utf-8")
+
+    password_hash = hashlib.pbkdf2_hmac(
+        "sha256",
+        password_bytes,
+        salt_bytes,
+        100000
+    )
+
+    return password_hash.hex()
+
+
+def register_user(
+    full_name,
+    email,
+    phone,
+    password,
+    confirm_password
+):
+    """
+    Validate and register a new passenger account.
+
+    Returns:
+        True and a success message when registration succeeds.
+        False and an error message when registration fails.
+    """
+
+    # Validate the passenger's name
+    is_valid, message = validate_name(full_name)
+
+    if not is_valid:
+        return False, message
+
+    # Validate the email address
+    is_valid, message = validate_email(email)
+
+    if not is_valid:
+        return False, message
+
+    # Validate the telephone number
+    is_valid, message = validate_phone(phone)
+
+    if not is_valid:
+        return False, message
+
+    # Validate the password
+    is_valid, message = validate_password(password)
+
+    if not is_valid:
+        return False, message
+
+    # Ensure both password fields match
+    if password != confirm_password:
+        return False, "Passwords do not match."
+
+    users = load_json_file(USERS_FILE)
+
+    # Ensure the loaded data is a list
+    if not isinstance(users, list):
+        return False, "The user data file has an invalid structure."
+
+    cleaned_email = normalise_email(email)
+
+    # Prevent duplicate accounts
+    if email_exists(cleaned_email, users):
+        return False, "An account already exists with this email address."
+
+    # Generate a random salt and hash the password
+    salt = secrets.token_hex(16)
+    password_hash = create_password_hash(password, salt)
+
+    new_user = {
+        "user_id": generate_user_id(),
+        "full_name": full_name.strip(),
+        "email": cleaned_email,
+        "phone": phone.strip(),
+        "password_hash": password_hash,
+        "salt": salt,
+        "role": "passenger"
+    }
+
+    users.append(new_user)
+
+    if save_json_file(USERS_FILE, users):
+        return True, "Account created successfully."
+
+    return False, "The account could not be saved."
+
 # PROGRAM START
 
 def main():
     """
-    Prepare the data files and test the validation functions.
+    Prepare the data files and test user registration.
     """
 
     create_data_files()
 
+    print("\nTesting user registration:")
+
+    success, message = register_user(
+        "Test Passenger",
+        "test@example.com",
+        "+44 7123 456789",
+        "Airline123",
+        "Airline123"
+    )
+
+    print(f"Registration successful: {success}")
+    print(f"Message: {message}")
+
     users = load_json_file(USERS_FILE)
-    flights = load_json_file(FLIGHTS_FILE)
-    bookings = load_json_file(BOOKINGS_FILE)
 
-    print("\nAirline Booking System data loaded successfully.")
-    print(f"Registered users: {len(users)}")
-    print(f"Available flights: {len(flights)}")
-    print(f"Saved bookings: {len(bookings)}")
+    print(f"\nRegistered users: {len(users)}")
 
-    print("\nValidation tests:")
-
-    name_result = validate_name("Abdullahi Alhassan")
-    email_result = validate_email("abdullahi@example.com")
-    phone_result = validate_phone("+44 7123 456789")
-    password_result = validate_password("Airline123")
-
-    print(f"Name: {name_result}")
-    print(f"Email: {email_result}")
-    print(f"Phone: {phone_result}")
-    print(f"Password: {password_result}")
-
+    if len(users) > 0:
+        print(f"User ID: {users[0]['user_id']}")
+        print(f"Name: {users[0]['full_name']}")
+        print(f"Email: {users[0]['email']}")
+        print(f"Role: {users[0]['role']}")
 
 if __name__ == "__main__":
     main()
