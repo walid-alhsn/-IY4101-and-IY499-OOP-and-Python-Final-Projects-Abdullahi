@@ -7,6 +7,7 @@ import secrets
 import tkinter as tk
 import uuid
 
+from datetime import datetime
 from pathlib import Path
 from tkinter import messagebox, ttk
 
@@ -295,6 +296,46 @@ def search_flights(origin, destination, departure_date):
 
     return matching_flights
 
+def validate_flight_search(origin, destination, departure_date):
+    """
+    Validate the information entered on the flight search form.
+
+    Returns True and an empty message when valid.
+    Returns False and an error message when invalid.
+    """
+
+    origin = origin.strip()
+    destination = destination.strip()
+    departure_date = departure_date.strip()
+
+    if origin == "":
+        return False, "Please select an origin."
+
+    if destination == "":
+        return False, "Please select a destination."
+
+    if origin.lower() == destination.lower():
+        return False, "Origin and destination cannot be the same."
+
+    if departure_date == "":
+        return False, "Please enter a departure date."
+
+    try:
+        selected_date = datetime.strptime(
+            departure_date,
+            "%Y-%m-%d"
+        ).date()
+
+    except ValueError:
+        return False, "Date must use the format YYYY-MM-DD."
+
+    today = datetime.now().date()
+
+    if selected_date < today:
+        return False, "Departure date cannot be in the past."
+
+    return True, ""
+
 # =========================================================
 # VALIDATION FUNCTIONS
 # ========================================================
@@ -428,6 +469,34 @@ def validate_password(password):
         return False, "Password must contain at least one number."
 
     return True, ""
+
+def get_flight_locations():
+    """
+    Return sorted lists of available origins and destinations.
+    """
+
+    flights = load_json_file(FLIGHTS_FILE)
+
+    origins = []
+    destinations = []
+
+    if not isinstance(flights, list):
+        return origins, destinations
+
+    for flight in flights:
+        origin = flight.get("origin", "")
+        destination = flight.get("destination", "")
+
+        if origin != "" and origin not in origins:
+            origins.append(origin)
+
+        if destination != "" and destination not in destinations:
+            destinations.append(destination)
+
+    origins.sort()
+    destinations.sort()
+
+    return origins, destinations
 
 # ==========================================================
 # AUTHENTICATION FUNCTIONS
@@ -649,8 +718,8 @@ class AirlineBookingApp:
         self.current_user = None
 
         self.root.title("Airline Booking Management System")
-        self.root.geometry("750x550")
-        self.root.minsize(700, 500)
+        self.root.geometry("900x650")
+        self.root.minsize(850, 600)
 
         # Configure reusable widget styles
         self.style = ttk.Style()
@@ -1099,10 +1168,9 @@ class AirlineBookingApp:
             main_frame,
             text="Search and Book a Flight",
             style="Dashboard.TButton",
-            command=lambda: self.show_feature_message(
-                "Flight Search"
-            )
+            command=self.show_flight_search_page
         )
+
         search_button.pack(
             fill="x",
             padx=120,
@@ -1147,6 +1215,384 @@ class AirlineBookingApp:
             fill="x",
             padx=120,
             pady=(25, 8)
+        )
+
+    # ======================================================
+    # FLIGHT SEARCH PAGE
+    # ======================================================
+
+    def show_flight_search_page(self):
+        """
+        Display the flight search form and results table.
+        """
+
+        self.clear_window()
+
+        # Store the flights currently displayed in the table
+        self.search_results = []
+
+        main_frame = ttk.Frame(
+            self.root,
+            padding=25
+        )
+        main_frame.pack(
+            fill="both",
+            expand=True
+        )
+
+        title_label = ttk.Label(
+            main_frame,
+            text="Search Flights",
+            style="Title.TLabel"
+        )
+        title_label.pack(pady=(0, 20))
+
+        search_frame = ttk.LabelFrame(
+            main_frame,
+            text="Journey Details",
+            padding=15
+        )
+        search_frame.pack(
+            fill="x",
+            pady=(0, 20)
+        )
+
+        origins, destinations = get_flight_locations()
+
+        origin_label = ttk.Label(
+            search_frame,
+            text="Origin:"
+        )
+        origin_label.grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=8,
+            pady=8
+        )
+
+        self.origin_combobox = ttk.Combobox(
+            search_frame,
+            values=origins,
+            state="readonly",
+            width=20
+        )
+        self.origin_combobox.grid(
+            row=1,
+            column=0,
+            padx=8,
+            pady=8
+        )
+
+        destination_label = ttk.Label(
+            search_frame,
+            text="Destination:"
+        )
+        destination_label.grid(
+            row=0,
+            column=1,
+            sticky="w",
+            padx=8,
+            pady=8
+        )
+
+        self.destination_combobox = ttk.Combobox(
+            search_frame,
+            values=destinations,
+            state="readonly",
+            width=20
+        )
+        self.destination_combobox.grid(
+            row=1,
+            column=1,
+            padx=8,
+            pady=8
+        )
+
+        date_label = ttk.Label(
+            search_frame,
+            text="Departure date:"
+        )
+        date_label.grid(
+            row=0,
+            column=2,
+            sticky="w",
+            padx=8,
+            pady=8
+        )
+
+        self.departure_date_entry = ttk.Entry(
+            search_frame,
+            width=20
+        )
+        self.departure_date_entry.grid(
+            row=1,
+            column=2,
+            padx=8,
+            pady=8
+        )
+
+        date_format_label = ttk.Label(
+            search_frame,
+            text="Format: YYYY-MM-DD"
+        )
+        date_format_label.grid(
+            row=2,
+            column=2,
+            padx=8,
+            sticky="w"
+        )
+
+        search_button = ttk.Button(
+            search_frame,
+            text="Search Flights",
+            command=self.handle_flight_search
+        )
+        search_button.grid(
+            row=1,
+            column=3,
+            padx=15,
+            pady=8
+        )
+
+        # Results section
+        results_frame = ttk.LabelFrame(
+            main_frame,
+            text="Available Flights",
+            padding=10
+        )
+        results_frame.pack(
+            fill="both",
+            expand=True
+        )
+
+        columns = (
+            "flight_id",
+            "airline",
+            "departure",
+            "arrival",
+            "price",
+            "available_seats"
+        )
+
+        self.flight_results_tree = ttk.Treeview(
+            results_frame,
+            columns=columns,
+            show="headings",
+            height=10,
+            selectmode="browse"
+        )
+
+        self.flight_results_tree.heading(
+            "flight_id",
+            text="Flight"
+        )
+        self.flight_results_tree.heading(
+            "airline",
+            text="Airline"
+        )
+        self.flight_results_tree.heading(
+            "departure",
+            text="Departure"
+        )
+        self.flight_results_tree.heading(
+            "arrival",
+            text="Arrival"
+        )
+        self.flight_results_tree.heading(
+            "price",
+            text="Base Price"
+        )
+        self.flight_results_tree.heading(
+            "available_seats",
+            text="Seats"
+        )
+
+        self.flight_results_tree.column(
+            "flight_id",
+            width=80,
+            anchor="center"
+        )
+        self.flight_results_tree.column(
+            "airline",
+            width=150
+        )
+        self.flight_results_tree.column(
+            "departure",
+            width=90,
+            anchor="center"
+        )
+        self.flight_results_tree.column(
+            "arrival",
+            width=90,
+            anchor="center"
+        )
+        self.flight_results_tree.column(
+            "price",
+            width=90,
+            anchor="center"
+        )
+        self.flight_results_tree.column(
+            "available_seats",
+            width=70,
+            anchor="center"
+        )
+
+        scrollbar = ttk.Scrollbar(
+            results_frame,
+            orient="vertical",
+            command=self.flight_results_tree.yview
+        )
+
+        self.flight_results_tree.configure(
+            yscrollcommand=scrollbar.set
+        )
+
+        self.flight_results_tree.pack(
+            side="left",
+            fill="both",
+            expand=True
+        )
+
+        scrollbar.pack(
+            side="right",
+            fill="y"
+        )
+
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(
+            fill="x",
+            pady=(15, 0)
+        )
+
+        back_button = ttk.Button(
+            button_frame,
+            text="Back to Dashboard",
+            command=self.show_passenger_dashboard
+        )
+        back_button.pack(side="left")
+
+        select_button = ttk.Button(
+            button_frame,
+            text="Select Flight",
+            command=self.handle_flight_selection
+        )
+        select_button.pack(side="right")
+
+        self.origin_combobox.focus()
+
+    def handle_flight_search(self):
+        """
+        Validate the form, search the flight records and
+        display matching flights.
+        """
+
+        origin = self.origin_combobox.get()
+        destination = self.destination_combobox.get()
+        departure_date = self.departure_date_entry.get()
+
+        is_valid, message = validate_flight_search(
+            origin,
+            destination,
+            departure_date
+        )
+
+        if not is_valid:
+            messagebox.showerror(
+                "Invalid Search",
+                message
+            )
+            return
+
+        matching_flights = search_flights(
+            origin,
+            destination,
+            departure_date
+        )
+
+        self.search_results = matching_flights
+
+        # Remove old rows from the table
+        for row in self.flight_results_tree.get_children():
+            self.flight_results_tree.delete(row)
+
+        if len(matching_flights) == 0:
+            messagebox.showinfo(
+                "No Flights Found",
+                (
+                    "No flights were found for the selected "
+                    "route and date."
+                )
+            )
+            return
+
+        for flight in matching_flights:
+            available_seat_count = len(
+                flight.get("available_seats", [])
+            )
+
+            self.flight_results_tree.insert(
+                "",
+                "end",
+                values=(
+                    flight.get("flight_id", ""),
+                    flight.get("airline", ""),
+                    flight.get("departure_time", ""),
+                    flight.get("arrival_time", ""),
+                    f"£{flight.get('base_price', 0):.2f}",
+                    available_seat_count
+                )
+            )
+
+    def handle_flight_selection(self):
+        """
+        Store the flight selected by the passenger.
+        """
+
+        selected_items = (
+            self.flight_results_tree.selection()
+        )
+
+        if len(selected_items) == 0:
+            messagebox.showerror(
+                "No Flight Selected",
+                "Please select a flight from the results table."
+            )
+            return
+
+        selected_item = selected_items[0]
+
+        selected_values = self.flight_results_tree.item(
+            selected_item,
+            "values"
+        )
+
+        selected_flight_id = selected_values[0]
+
+        selected_flight = None
+
+        for flight in self.search_results:
+            if flight.get("flight_id") == selected_flight_id:
+                selected_flight = flight
+                break
+
+        if selected_flight is None:
+            messagebox.showerror(
+                "Selection Error",
+                "The selected flight could not be found."
+            )
+            return
+
+        self.selected_flight = selected_flight
+
+        messagebox.showinfo(
+            "Flight Selected",
+            (
+                f"You selected {selected_flight['flight_id']} "
+                f"with {selected_flight['airline']}.\n\n"
+                "Passenger details and seat selection will "
+                "be added in the next stage."
+            )
         )
 
     # ======================================================
