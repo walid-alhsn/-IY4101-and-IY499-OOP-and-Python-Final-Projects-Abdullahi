@@ -10,8 +10,9 @@ import uuid
 from pathlib import Path
 from tkinter import messagebox, ttk
 
-
+# =========================================================
 # FILE PATHS
+# ========================================================
 
 # The folder containing this Python file
 BASE_DIR = Path(__file__).resolve().parent
@@ -24,8 +25,9 @@ USERS_FILE = DATA_DIR / "users.json"
 FLIGHTS_FILE = DATA_DIR / "flights.json"
 BOOKINGS_FILE = DATA_DIR / "bookings.json"
 
-
+# =========================================================
 # FILE-HANDLING FUNCTIONS
+# ========================================================
 
 def create_data_files():
     """
@@ -89,7 +91,213 @@ def save_json_file(file_path, data):
         print(f"Error saving {file_path.name}: {error}")
         return False
 
+# ==========================================================
+# FLIGHT DATA FUNCTIONS
+# ==========================================================
+
+def generate_seat_list(number_of_rows=3):
+    """
+    Generate seat numbers for an aircraft.
+
+    Each row contains seats A, B, C and D.
+    For example: 1A, 1B, 1C and 1D.
+    """
+
+    seats = []
+    seat_letters = ["A", "B", "C", "D"]
+
+    for row_number in range(1, number_of_rows + 1):
+        for seat_letter in seat_letters:
+            seat_number = f"{row_number}{seat_letter}"
+            seats.append(seat_number)
+
+    return seats
+
+def create_sample_flights():
+    """
+    Add the initial flight records when flights.json is empty.
+
+    Existing flight data is not overwritten.
+    """
+
+    flights = load_json_file(FLIGHTS_FILE)
+
+    if not isinstance(flights, list):
+        print("Error: flights.json must contain a list.")
+        return False
+
+    # Do not overwrite existing flight records
+    if len(flights) > 0:
+        return True
+
+    all_seats = generate_seat_list(3)
+
+    sample_flights = [
+        {
+            "flight_id": "SK101",
+            "airline": "SkyLink Airways",
+            "origin": "London",
+            "destination": "Dubai",
+            "departure_date": "2026-08-05",
+            "departure_time": "09:30",
+            "arrival_time": "19:20",
+            "duration_minutes": 590,
+            "gate": "A12",
+            "base_price": 425.00,
+            "airport_tax": 45.00,
+            "total_seats": 12,
+            "available_seats": all_seats.copy()
+        },
+        {
+            "flight_id": "EA205",
+            "airline": "Emerald Air",
+            "origin": "London",
+            "destination": "Dubai",
+            "departure_date": "2026-08-05",
+            "departure_time": "13:15",
+            "arrival_time": "23:05",
+            "duration_minutes": 590,
+            "gate": "B07",
+            "base_price": 390.00,
+            "airport_tax": 45.00,
+            "total_seats": 12,
+            "available_seats": all_seats[2:]
+        },
+        {
+            "flight_id": "AW318",
+            "airline": "Atlantic Wings",
+            "origin": "London",
+            "destination": "Dubai",
+            "departure_date": "2026-08-05",
+            "departure_time": "18:40",
+            "arrival_time": "04:30",
+            "duration_minutes": 590,
+            "gate": "C15",
+            "base_price": 455.00,
+            "airport_tax": 45.00,
+            "total_seats": 12,
+            "available_seats": all_seats[7:]
+        },
+        {
+            "flight_id": "HA220",
+            "airline": "Horizon Airlines",
+            "origin": "Manchester",
+            "destination": "Paris",
+            "departure_date": "2026-08-05",
+            "departure_time": "08:20",
+            "arrival_time": "10:50",
+            "duration_minutes": 90,
+            "gate": "D04",
+            "base_price": 175.00,
+            "airport_tax": 30.00,
+            "total_seats": 12,
+            "available_seats": all_seats.copy()
+        },
+        {
+            "flight_id": "SK150",
+            "airline": "SkyLink Airways",
+            "origin": "London",
+            "destination": "New York",
+            "departure_date": "2026-08-06",
+            "departure_time": "11:10",
+            "arrival_time": "14:20",
+            "duration_minutes": 490,
+            "gate": "A18",
+            "base_price": 520.00,
+            "airport_tax": 60.00,
+            "total_seats": 12,
+            "available_seats": all_seats[3:]
+        },
+        {
+            "flight_id": "EA330",
+            "airline": "Emerald Air",
+            "origin": "Lagos",
+            "destination": "Abuja",
+            "departure_date": "2026-08-06",
+            "departure_time": "07:30",
+            "arrival_time": "08:45",
+            "duration_minutes": 75,
+            "gate": "B03",
+            "base_price": 95.00,
+            "airport_tax": 15.00,
+            "total_seats": 12,
+            "available_seats": all_seats.copy()
+        },
+        {
+            "flight_id": "AW401",
+            "airline": "Atlantic Wings",
+            "origin": "Abuja",
+            "destination": "Lagos",
+            "departure_date": "2026-08-07",
+            "departure_time": "15:20",
+            "arrival_time": "16:35",
+            "duration_minutes": 75,
+            "gate": "C08",
+            "base_price": 105.00,
+            "airport_tax": 15.00,
+            "total_seats": 12,
+            "available_seats": all_seats[5:]
+        },
+        {
+            "flight_id": "HA510",
+            "airline": "Horizon Airlines",
+            "origin": "Kano",
+            "destination": "Lagos",
+            "departure_date": "2026-08-07",
+            "departure_time": "10:00",
+            "arrival_time": "11:40",
+            "duration_minutes": 100,
+            "gate": "D10",
+            "base_price": 120.00,
+            "airport_tax": 18.00,
+            "total_seats": 12,
+            "available_seats": all_seats[1:]
+        }
+    ]
+
+    if save_json_file(FLIGHTS_FILE, sample_flights):
+        print("Sample flight data created successfully.")
+        return True
+
+    return False
+
+def search_flights(origin, destination, departure_date):
+    """
+    Search for flights matching an origin, destination and date.
+
+    This function uses a linear search by examining every
+    flight record one at a time.
+    """
+
+    flights = load_json_file(FLIGHTS_FILE)
+    matching_flights = []
+
+    if not isinstance(flights, list):
+        return matching_flights
+
+    cleaned_origin = origin.strip().lower()
+    cleaned_destination = destination.strip().lower()
+    cleaned_date = departure_date.strip()
+
+    for flight in flights:
+        flight_origin = flight.get("origin", "").lower()
+        flight_destination = flight.get("destination", "").lower()
+        flight_date = flight.get("departure_date", "")
+
+        origin_matches = flight_origin == cleaned_origin
+        destination_matches = (
+            flight_destination == cleaned_destination
+        )
+        date_matches = flight_date == cleaned_date
+
+        if origin_matches and destination_matches and date_matches:
+            matching_flights.append(flight)
+
+    return matching_flights
+
+# =========================================================
 # VALIDATION FUNCTIONS
+# ========================================================
 
 def validate_name(name):
     """
@@ -221,7 +429,9 @@ def validate_password(password):
 
     return True, ""
 
+# ==========================================================
 # AUTHENTICATION FUNCTIONS
+# ==========================================================
 
 def normalise_email(email):
     """
@@ -1019,6 +1229,7 @@ def main():
     """
 
     create_data_files()
+    create_sample_flights()
 
     root = tk.Tk()
     AirlineBookingApp(root)
