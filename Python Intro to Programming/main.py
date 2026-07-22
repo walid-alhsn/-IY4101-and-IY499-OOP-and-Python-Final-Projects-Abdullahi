@@ -379,6 +379,102 @@ def bubble_sort_flights(flights, sort_option):
 
     return sorted_flights
 
+# ==========================================================
+# FARE CALCULATION FUNCTIONS
+# ==========================================================
+
+def calculate_demand_adjustment(flight):
+    """
+    Calculate a price increase based on the percentage
+    of seats still available.
+
+    Returns the adjustment amount and percentage rate.
+    """
+
+    base_price = float(flight.get("base_price", 0))
+    total_seats = int(flight.get("total_seats", 0))
+    available_seats = flight.get("available_seats", [])
+
+    if total_seats <= 0:
+        return 0.0, 0
+
+    availability_percentage = (
+        len(available_seats) / total_seats
+    ) * 100
+
+    if availability_percentage > 60:
+        adjustment_rate = 0.00
+
+    elif availability_percentage > 30:
+        adjustment_rate = 0.10
+
+    elif availability_percentage > 10:
+        adjustment_rate = 0.20
+
+    else:
+        adjustment_rate = 0.30
+
+    adjustment_amount = base_price * adjustment_rate
+
+    return round(adjustment_amount, 2), int(
+        adjustment_rate * 100
+    )
+
+
+def calculate_seat_charge(seat_number):
+    """
+    Calculate the additional charge for a selected seat.
+
+    Seats A and D are window seats.
+    Seats B and C are standard seats.
+    """
+
+    if seat_number == "":
+        return 0.0
+
+    seat_letter = seat_number[-1].upper()
+
+    if seat_letter in ["A", "D"]:
+        return 15.00
+
+    return 5.00
+
+
+def calculate_total_fare(flight, seat_number):
+    """
+    Calculate and return a complete fare breakdown.
+    """
+
+    base_price = float(flight.get("base_price", 0))
+    airport_tax = float(flight.get("airport_tax", 0))
+
+    demand_adjustment, demand_rate = (
+        calculate_demand_adjustment(flight)
+    )
+
+    seat_charge = calculate_seat_charge(seat_number)
+
+    total_price = (
+        base_price
+        + airport_tax
+        + demand_adjustment
+        + seat_charge
+    )
+
+    fare_details = {
+        "base_price": round(base_price, 2),
+        "airport_tax": round(airport_tax, 2),
+        "demand_adjustment": round(
+            demand_adjustment,
+            2
+        ),
+        "demand_rate": demand_rate,
+        "seat_charge": round(seat_charge, 2),
+        "total_price": round(total_price, 2)
+    }
+
+    return fare_details
+
 def validate_flight_search(origin, destination, departure_date):
     """
     Validate the information entered on the flight search form.
@@ -829,6 +925,9 @@ class AirlineBookingApp:
         """
         Remove every widget currently displayed in the window.
         """
+
+        # Remove page-specific mouse-wheel bindings
+        self.root.unbind_all("<MouseWheel>")
 
         for widget in self.root.winfo_children():
             widget.destroy()
@@ -1754,14 +1853,480 @@ class AirlineBookingApp:
 
         self.selected_flight = selected_flight
 
-        messagebox.showinfo(
-            "Flight Selected",
-            (
-                f"You selected {selected_flight['flight_id']} "
-                f"with {selected_flight['airline']}.\n\n"
-                "Passenger details and seat selection will "
-                "be added in the next stage."
+        if len(selected_flight.get("available_seats", [])) == 0:
+            messagebox.showerror(
+                "Flight Unavailable",
+                "This flight has no available seats."
             )
+            return
+
+        self.show_booking_details_page()
+
+    # ======================================================
+    # BOOKING DETAILS PAGE
+    # ======================================================
+
+    def show_booking_details_page(self):
+        """
+        Display the selected flight, passenger information,
+        seat options and fare calculation.
+        """
+
+        self.clear_window()
+
+        flight = self.selected_flight
+
+        # Main container for the canvas and scrollbar
+        page_container = ttk.Frame(self.root)
+        page_container.pack(
+            fill="both",
+            expand=True
+        )
+
+        # Canvas allows the page to scroll vertically
+        canvas = tk.Canvas(
+            page_container,
+            highlightthickness=0,
+            background=self.root.cget("background")
+        )
+
+        scrollbar = ttk.Scrollbar(
+            page_container,
+            orient="vertical",
+            command=canvas.yview
+        )
+
+        # All booking-page widgets will be placed inside this frame
+        main_frame = ttk.Frame(
+            canvas,
+            padding=25
+        )
+
+        canvas_window = canvas.create_window(
+            (0, 0),
+            window=main_frame,
+            anchor="nw"
+        )
+
+        canvas.configure(
+            yscrollcommand=scrollbar.set
+        )
+
+        def update_scroll_region(event):
+            """
+            Update the scrollable area whenever the size of the
+            booking page changes.
+            """
+
+            canvas.configure(
+                scrollregion=canvas.bbox("all")
+            )
+
+
+        def resize_booking_page(event):
+            """
+            Keep the booking page the same width as the canvas.
+            """
+
+            canvas.itemconfigure(
+                canvas_window,
+                width=event.width
+            )
+
+
+        main_frame.bind(
+            "<Configure>",
+            update_scroll_region
+        )
+
+        canvas.bind(
+            "<Configure>",
+            resize_booking_page
+        )
+
+        canvas.pack(
+            side="left",
+            fill="both",
+            expand=True
+        )
+
+        scrollbar.pack(
+            side="right",
+            fill="y"
+        )
+
+        # Mouse-wheel scrolling for macOS and Windows
+        def scroll_booking_page(event):
+            if event.delta > 0:
+                canvas.yview_scroll(-1, "units")
+            elif event.delta < 0:
+                canvas.yview_scroll(1, "units")
+
+
+        canvas.bind_all(
+            "<MouseWheel>",
+            scroll_booking_page
+        )
+
+        title_label = ttk.Label(
+            main_frame,
+            text="Complete Your Booking",
+            style="Title.TLabel"
+        )
+        title_label.pack(pady=(0, 20))
+
+        # --------------------------------------------------
+        # FLIGHT INFORMATION
+        # --------------------------------------------------
+
+        flight_frame = ttk.LabelFrame(
+            main_frame,
+            text="Selected Flight",
+            padding=15
+        )
+        flight_frame.pack(
+            fill="x",
+            pady=(0, 15)
+        )
+
+        flight_information = (
+            f"{flight['flight_id']} — {flight['airline']}\n"
+            f"{flight['origin']} to {flight['destination']}\n"
+            f"Date: {flight['departure_date']}\n"
+            f"Departure: {flight['departure_time']}    "
+            f"Arrival: {flight['arrival_time']}\n"
+            f"Gate: {flight['gate']}"
+        )
+
+        flight_label = ttk.Label(
+            flight_frame,
+            text=flight_information,
+            justify="left"
+        )
+        flight_label.pack(anchor="w")
+
+        # --------------------------------------------------
+        # PASSENGER INFORMATION
+        # --------------------------------------------------
+
+        passenger_frame = ttk.LabelFrame(
+            main_frame,
+            text="Passenger Details",
+            padding=15
+        )
+        passenger_frame.pack(
+            fill="x",
+            pady=(0, 15)
+        )
+
+        ttk.Label(
+            passenger_frame,
+            text="Full name:"
+        ).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=(0, 15),
+            pady=5
+        )
+
+        name_entry = ttk.Entry(
+            passenger_frame,
+            width=35
+        )
+        name_entry.grid(
+            row=0,
+            column=1,
+            pady=5
+        )
+        name_entry.insert(
+            0,
+            self.current_user["full_name"]
+        )
+        name_entry.configure(state="readonly")
+
+        ttk.Label(
+            passenger_frame,
+            text="Email address:"
+        ).grid(
+            row=1,
+            column=0,
+            sticky="w",
+            padx=(0, 15),
+            pady=5
+        )
+
+        email_entry = ttk.Entry(
+            passenger_frame,
+            width=35
+        )
+        email_entry.grid(
+            row=1,
+            column=1,
+            pady=5
+        )
+        email_entry.insert(
+            0,
+            self.current_user["email"]
+        )
+        email_entry.configure(state="readonly")
+
+        ttk.Label(
+            passenger_frame,
+            text="Telephone:"
+        ).grid(
+            row=2,
+            column=0,
+            sticky="w",
+            padx=(0, 15),
+            pady=5
+        )
+
+        phone_entry = ttk.Entry(
+            passenger_frame,
+            width=35
+        )
+        phone_entry.grid(
+            row=2,
+            column=1,
+            pady=5
+        )
+        phone_entry.insert(
+            0,
+            self.current_user["phone"]
+        )
+        phone_entry.configure(state="readonly")
+
+        # --------------------------------------------------
+        # SEAT SELECTION
+        # --------------------------------------------------
+
+        booking_frame = ttk.LabelFrame(
+            main_frame,
+            text="Seat and Fare",
+            padding=15
+        )
+        booking_frame.pack(
+            fill="x"
+        )
+
+        ttk.Label(
+            booking_frame,
+            text="Select an available seat:"
+        ).grid(
+            row=0,
+            column=0,
+            sticky="w",
+            padx=(0, 15),
+            pady=8
+        )
+
+        available_seats = flight.get(
+            "available_seats",
+            []
+        )
+
+        self.seat_combobox = ttk.Combobox(
+            booking_frame,
+            values=available_seats,
+            state="readonly",
+            width=20
+        )
+        self.seat_combobox.grid(
+            row=0,
+            column=1,
+            sticky="w",
+            pady=8
+        )
+
+        self.seat_combobox.bind(
+            "<<ComboboxSelected>>",
+            self.update_fare_summary
+        )
+
+        seat_information_label = ttk.Label(
+            booking_frame,
+            text=(
+                "Window seats A and D: £15.00\n"
+                "Standard seats B and C: £5.00"
+            )
+        )
+        seat_information_label.grid(
+            row=1,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=(5, 15)
+        )
+
+        self.fare_summary_label = ttk.Label(
+            booking_frame,
+            text="Select a seat to calculate the final fare.",
+            justify="left"
+        )
+        self.fare_summary_label.grid(
+            row=2,
+            column=0,
+            columnspan=2,
+            sticky="w",
+            pady=10
+        )
+
+        button_frame = ttk.Frame(main_frame)
+        button_frame.pack(
+            fill="x",
+            pady=(15, 0)
+        )
+
+        back_button = ttk.Button(
+            button_frame,
+            text="Back to Search",
+            command=self.show_flight_search_page
+        )
+        back_button.pack(side="left")
+
+        continue_button = ttk.Button(
+            button_frame,
+            text="Review Booking",
+            command=self.handle_booking_review
+        )
+        continue_button.pack(side="right")
+
+        self.seat_combobox.focus()
+
+    def update_fare_summary(self, event=None):
+        """
+        Recalculate and display the fare whenever a seat
+        is selected.
+        """
+
+        selected_seat = self.seat_combobox.get()
+
+        if selected_seat == "":
+            self.fare_summary_label.configure(
+                text="Select a seat to calculate the final fare."
+            )
+            return
+
+        self.fare_details = calculate_total_fare(
+            self.selected_flight,
+            selected_seat
+        )
+
+        fare_text = (
+            f"Base fare: £"
+            f"{self.fare_details['base_price']:.2f}\n"
+
+            f"Airport tax: £"
+            f"{self.fare_details['airport_tax']:.2f}\n"
+
+            f"Demand adjustment "
+            f"({self.fare_details['demand_rate']}%): £"
+            f"{self.fare_details['demand_adjustment']:.2f}\n"
+
+            f"Seat charge: £"
+            f"{self.fare_details['seat_charge']:.2f}\n"
+
+            f"--------------------------------\n"
+
+            f"Total price: £"
+            f"{self.fare_details['total_price']:.2f}"
+        )
+
+        self.fare_summary_label.configure(
+            text=fare_text
+        )
+
+    def handle_booking_review(self):
+        """
+        Validate the selected seat and display a temporary
+        booking summary.
+        """
+
+        selected_seat = self.seat_combobox.get()
+
+        if selected_seat == "":
+            messagebox.showerror(
+                "No Seat Selected",
+                "Please select an available seat."
+            )
+            return
+
+        current_flights = load_json_file(
+            FLIGHTS_FILE
+        )
+
+        current_flight = None
+
+        for flight in current_flights:
+            if (
+                flight.get("flight_id")
+                == self.selected_flight.get("flight_id")
+            ):
+                current_flight = flight
+                break
+
+        if current_flight is None:
+            messagebox.showerror(
+                "Flight Error",
+                "The selected flight no longer exists."
+            )
+            return
+
+        if selected_seat not in current_flight.get(
+            "available_seats",
+            []
+        ):
+            messagebox.showerror(
+                "Seat Unavailable",
+                (
+                    "The selected seat is no longer available. "
+                    "Please choose another seat."
+                )
+            )
+
+            self.selected_flight = current_flight
+            self.show_booking_details_page()
+            return
+
+        self.selected_flight = current_flight
+
+        self.fare_details = calculate_total_fare(
+            current_flight,
+            selected_seat
+        )
+
+        self.selected_seat = selected_seat
+
+        summary = (
+            f"Passenger: "
+            f"{self.current_user['full_name']}\n"
+
+            f"Flight: "
+            f"{current_flight['flight_id']}\n"
+
+            f"Airline: "
+            f"{current_flight['airline']}\n"
+
+            f"Route: "
+            f"{current_flight['origin']} to "
+            f"{current_flight['destination']}\n"
+
+            f"Date: "
+            f"{current_flight['departure_date']}\n"
+
+            f"Seat: {selected_seat}\n"
+
+            f"Total: £"
+            f"{self.fare_details['total_price']:.2f}\n\n"
+
+            "Booking confirmation and saving will be added "
+            "in the next stage."
+        )
+
+        messagebox.showinfo(
+            "Booking Summary",
+            summary
         )
 
     # ======================================================
