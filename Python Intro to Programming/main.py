@@ -296,6 +296,89 @@ def search_flights(origin, destination, departure_date):
 
     return matching_flights
 
+def bubble_sort_flights(flights, sort_option):
+    """
+    Sort flight records using the bubble sort algorithm.
+
+    A copy of the supplied list is sorted so the original
+    list is not changed.
+    """
+
+    sorted_flights = flights.copy()
+    number_of_flights = len(sorted_flights)
+
+    for pass_number in range(number_of_flights - 1):
+        swapped = False
+
+        for index in range(
+            number_of_flights - 1 - pass_number
+        ):
+            current_flight = sorted_flights[index]
+            next_flight = sorted_flights[index + 1]
+
+            if sort_option == "Price: Low to High":
+                current_value = current_flight.get(
+                    "base_price",
+                    0
+                )
+                next_value = next_flight.get(
+                    "base_price",
+                    0
+                )
+
+                should_swap = current_value > next_value
+
+            elif sort_option == "Price: High to Low":
+                current_value = current_flight.get(
+                    "base_price",
+                    0
+                )
+                next_value = next_flight.get(
+                    "base_price",
+                    0
+                )
+
+                should_swap = current_value < next_value
+
+            elif sort_option == "Departure Time":
+                current_value = current_flight.get(
+                    "departure_time",
+                    ""
+                )
+                next_value = next_flight.get(
+                    "departure_time",
+                    ""
+                )
+
+                should_swap = current_value > next_value
+
+            elif sort_option == "Airline: A to Z":
+                current_value = current_flight.get(
+                    "airline",
+                    ""
+                ).lower()
+
+                next_value = next_flight.get(
+                    "airline",
+                    ""
+                ).lower()
+
+                should_swap = current_value > next_value
+
+            else:
+                return sorted_flights
+
+            if should_swap:
+                sorted_flights[index] = next_flight
+                sorted_flights[index + 1] = current_flight
+                swapped = True
+
+        # Stop early if no values were exchanged
+        if not swapped:
+            break
+
+    return sorted_flights
+
 def validate_flight_search(origin, destination, departure_date):
     """
     Validate the information entered on the flight search form.
@@ -1459,6 +1542,48 @@ class AirlineBookingApp:
             fill="y"
         )
 
+        sort_frame = ttk.Frame(main_frame)
+        sort_frame.pack(
+            fill="x",
+            pady=(12, 0)
+        )
+
+        sort_label = ttk.Label(
+            sort_frame,
+            text="Sort results by:"
+        )
+        sort_label.pack(
+            side="left",
+            padx=(0, 8)
+        )
+
+        self.sort_combobox = ttk.Combobox(
+            sort_frame,
+            values=[
+                "Price: Low to High",
+                "Price: High to Low",
+                "Departure Time",
+                "Airline: A to Z"
+            ],
+            state="readonly",
+            width=22
+        )
+        self.sort_combobox.pack(
+            side="left",
+            padx=(0, 8)
+        )
+
+        self.sort_combobox.set(
+            "Price: Low to High"
+        )
+
+        sort_button = ttk.Button(
+            sort_frame,
+            text="Sort Flights",
+            command=self.handle_flight_sort
+        )
+        sort_button.pack(side="left")
+
         button_frame = ttk.Frame(main_frame)
         button_frame.pack(
             fill="x",
@@ -1526,7 +1651,18 @@ class AirlineBookingApp:
             )
             return
 
-        for flight in matching_flights:
+        self.display_flight_results(matching_flights)
+
+    def display_flight_results(self, flights):
+        """
+        Clear the results table and display the supplied
+        flight records.
+        """
+
+        for row in self.flight_results_tree.get_children():
+            self.flight_results_tree.delete(row)
+
+        for flight in flights:
             available_seat_count = len(
                 flight.get("available_seats", [])
             )
@@ -1543,6 +1679,39 @@ class AirlineBookingApp:
                     available_seat_count
                 )
             )
+
+    def handle_flight_sort(self):
+        """
+        Sort the current flight-search results using the
+        option selected by the passenger.
+        """
+
+        if len(self.search_results) == 0:
+            messagebox.showerror(
+                "No Search Results",
+                "Please search for flights before sorting."
+            )
+            return
+
+        sort_option = self.sort_combobox.get()
+
+        if sort_option == "":
+            messagebox.showerror(
+                "No Sort Option",
+                "Please select a sorting option."
+            )
+            return
+
+        sorted_results = bubble_sort_flights(
+            self.search_results,
+            sort_option
+        )
+
+        self.search_results = sorted_results
+
+        self.display_flight_results(
+            self.search_results
+        )
 
     def handle_flight_selection(self):
         """
