@@ -159,10 +159,8 @@ No `pip install` command is required.
 Airline-Booking-Management-System/
 │
 ├── main.py
-├── README.md
 ├── README.docx
 ├── Airline_Booking_System_Design_and_Testing.docx
-├── .gitignore
 │
 ├── data/                    # Created automatically
 │   ├── users.json
@@ -292,22 +290,6 @@ The following resources were consulted for features beyond the basic module cont
 - [OWASP Password Storage Cheat Sheet](https://cheatsheetseries.owasp.org/cheatsheets/Password_Storage_Cheat_Sheet.html)
 
 Any code closely adapted from an external source should also be identified in a nearby code comment with the relevant source link.
-
----
-
-## Recommended `.gitignore`
-
-```gitignore
-__pycache__/
-*.pyc
-*.pyo
-
-data/
-boarding_passes/
-
-.DS_Store
-Thumbs.db
-```
 
 ---
 
