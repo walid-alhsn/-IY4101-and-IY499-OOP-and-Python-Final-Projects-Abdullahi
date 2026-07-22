@@ -96,13 +96,13 @@ sudo apt install python3-tk
 1. Clone this repository:
 
 ```bash
-git clone YOUR_REPOSITORY_URL
+git clone https://github.com/walid-alhsn/-IY4101-and-IY499-OOP-and-Python-Final-Projects-Abdullahi.git
 ```
 
 2. Open the project folder:
 
 ```bash
-cd YOUR_REPOSITORY_FOLDER
+cd Python Intro to Programming
 ```
 
 3. Run the application:
@@ -322,5 +322,5 @@ Where I have referred to online sources, I have provided comments detailing the 
 
 **Abdullahi Alhassan**  
 **Module:** IY499 – Introduction to Programming  
-**P-number:** `ENTER YOUR P-NUMBER`  
+**Student ID:** 303069863  
 **Contact:** `qkf526@york.ac.uk`
