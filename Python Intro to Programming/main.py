@@ -967,8 +967,8 @@ class AirlineBookingApp:
         self.last_search = {"origin": "", "destination": "", "date": "", "sort": "Price: Low to High", "results": []}  # Restored after Back
 
         self.root.title(APP_TITLE)
-        self.root.geometry("1100x720")
-        self.root.minsize(950, 650)
+        self.root.geometry("1100x800")
+        self.root.minsize(950, 700)
         self.root.configure(bg=COLOURS["background"])
         self.configure_styles()
         self.show_login_page()
